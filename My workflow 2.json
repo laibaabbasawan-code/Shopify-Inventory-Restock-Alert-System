@@ -1,0 +1,175 @@
+{
+  "name": "My workflow 2",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {}
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -192,
+        -16
+      ],
+      "id": "0789bb43-8ddb-4597-9059-415bfe2da84b",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "resource": "product",
+        "operation": "getAll",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.shopify",
+      "typeVersion": 1,
+      "position": [
+        48,
+        -96
+      ],
+      "id": "ce4972a0-1a63-4832-8957-612bfd346000",
+      "name": "Get many products",
+      "credentials": {
+        "shopifyOAuth2Api": {
+          "id": "O46HxPde4rf84rTV",
+          "name": "Shopify account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "1c84ce4d-f381-4e35-9363-4d83bfb36fff",
+              "leftValue": "={{ $json.variants[0].inventory_quantity }}",
+              "rightValue": "=5",
+              "operator": {
+                "type": "number",
+                "operation": "lte"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        224,
+        32
+      ],
+      "id": "d9f017c8-7c42-491f-98b5-5579c36fcf5a",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "jsCode": "const lowStockProducts = $input.all();\n\nconst report = lowStockProducts.map(item => {\n  const product = item.json;\n\n  return `Product: ${product.title}\nStock: ${product.variants?.[0]?.inventory_quantity ?? 0}`;\n}).join('\\n\\n');\n\nreturn [{\n  json: {\n    subject: '⚠️ Shopify Low Stock Alert',\n    report\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        464,
+        -112
+      ],
+      "id": "c9449ad4-b6ca-467d-9356-ff4c0117f89b",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "sendTo": "laibaabbas.awan@gmail.com",
+        "subject": "=related to inventory stock {{ $json.subject }}",
+        "message": "={{ $json.report }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        672,
+        -32
+      ],
+      "id": "03e20c73-cab2-4c10-a618-ededc351f968",
+      "name": "Send a message1",
+      "webhookId": "b98bb3de-7fe5-4e6a-9c42-3eb6fb0b4c2e",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "WZ9IoqdHedKpeWdv",
+          "name": "Gmail account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Get many products",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get many products": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Send a message1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "78edee9d-9009-48b3-8aa5-1378f0ef6fb5",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "92bbb1af581a08eaf4cdf522a279d26cd72d51aa8c069ea8a0e839d7dc0fbaaf"
+  },
+  "nodeGroups": [],
+  "id": "LTqSgJPmq0VtE5RI",
+  "tags": []
+}
